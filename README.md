@@ -1,2 +1,2 @@
 # PeopleCounting
-# API for people counting (POC)
+### API for people counting (POC)
