@@ -95,7 +95,7 @@ class MongoDB:
 
     def get_count(self, camid, rq=None):
         if rq == "live":
-            return self.db[self.col_counter].find({'camid': camid}).sort("camid", -1)
+            return self.db[self.col_counter].find_one({'camid': camid}).sort("camid", -1)
         else:
             return self.db[self.col_counter].find({'camid': camid}).sort("camid", -1)
         pass

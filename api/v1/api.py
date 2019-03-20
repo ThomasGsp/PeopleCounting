@@ -79,7 +79,7 @@ class Dates:
 
 
 class Values:
-    def GET(self, camid, rq):
+    def GET(self, camid, rq=None):
         try:
             if camid:
                 if rq == "live":

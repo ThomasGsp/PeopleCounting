@@ -76,7 +76,7 @@ class Core:
         self.mongo.insert_count(data)
 
     def get_count(self, camid, rq=None):
-        self.mongo.get_count(camid, rq=None)
+        self.mongo.get_count(camid, rq)
 
 
 
