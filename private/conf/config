@@ -23,4 +23,4 @@ bulk_write = 1
 bulk_size = 1000
 
 ; log output
-logs_dir = /var/log/hyperproxmox/
+logs_dir = /var/log/camcount/
