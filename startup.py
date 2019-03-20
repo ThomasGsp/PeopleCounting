@@ -36,7 +36,9 @@ if __name__ == "__main__":
     generalconf = {
         "logger": {"logs_level": localconf['logger']['logs_level'],
                    "logs_dir": localconf['logger']['logs_dir'], "bulk_write": localconf['logger']['bulk_write'],
-                   "bulk_size": localconf['logger']['bulk_size']}
+                   "bulk_size": localconf['logger']['bulk_size']},
+
+        "mongodb": {"ip": localconf['databases']['mongodb_ip'], 'port': localconf['databases']['mongodb_port']}
     }
 
     """ Active logger"""

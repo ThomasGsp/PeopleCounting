@@ -3,6 +3,14 @@
 user:
 
 
+[databases]
+; Databases configurations
+; NOSQL databases, should use a password
+mongodb_user:
+mongodb_password:
+mongodb_ip: 127.0.0.1
+mongodb_port: 27017
+
 
 [logger]
 ; logs level    1: "INFO",  2: "WARNING", 3: "ERROR", 4: "CRITICAL",  5: "DEBUG"
