@@ -30,7 +30,7 @@ class RunAnalyseCam:
         self.logger = logger
         self.camid = cam['camid']
         self.camaccess = cam['httpstream']
-        self.api_pwd = "sfgf5saGFDF4eFS"
+        self.Xserver = False
 
         self.prototxt = "core/modules/counter/mobilenet_ssd/MobileNetSSD_deploy.prototxt"
         self.model = "core/modules/counter/mobilenet_ssd/MobileNetSSD_deploy.caffemodel"
@@ -215,13 +215,6 @@ class RunAnalyseCam:
                 # store the trackable object in our dictionary
                 trackableObjects[objectID] = to
 
-                # draw both the ID of the object and the centroid of the
-                # object on the output frame
-                text = "ID {}".format(objectID)
-                cv2.putText(frame, text, (centroid[0] - 10, centroid[1] - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-                cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
-
             # construct a tuple of information we will be displaying on the
             # frame
             jsondata = {'camid': self.camid, 'up': totalUp, 'down': totalDown, 'status': status}
@@ -235,12 +228,13 @@ class RunAnalyseCam:
                 writer.write(frame)
 
             # show the output frame
-            cv2.imshow("Frame", frame)
-            key = cv2.waitKey(1) & 0xFF
+            if self.Xserver:
+                cv2.imshow("Frame", frame)
+                key = cv2.waitKey(1) & 0xFF
 
-            # if the `q` key was pressed, break from the loop
-            if key == ord("q"):
-                break
+                # if the `q` key was pressed, break from the loop
+                if key == ord("q"):
+                    break
 
             # increment the total number of frames processed thus far and
             # then update the FPS counter
