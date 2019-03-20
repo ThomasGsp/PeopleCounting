@@ -20,32 +20,28 @@ import imutils
 import time
 import dlib
 import cv2
+import time
+import requests
 
 
 class RunAnalyseCam:
     def __init__(self, generalconf, logger, cam):
         self.generalconf = generalconf
         self.logger = logger
-        self.camname = cam['name']
+        self.camid = cam['camid']
         self.camaccess = cam['httpstream']
+        self.api_pwd = "sfgf5saGFDF4eFS"
+
+        self.prototxt = "core/modules/counter/mobilenet_ssd/MobileNetSSD_deploy.prototxt"
+        self.model = "core/modules/counter/mobilenet_ssd/MobileNetSSD_deploy.caffemodel"
+        self.httpstream = cam['httpstream']
+        self.skipframes = 30
+        self.confidence = 0.4
 
     def run(self):
         # construct the argument parse and parse the arguments
-        ap = argparse.ArgumentParser()
-        ap.add_argument("-p", "--prototxt", required=False, default="core/modules/counter/mobilenet_ssd/MobileNetSSD_deploy.prototxt",
-            help="path to Caffe 'deploy' prototxt file")
-        ap.add_argument("-m", "--model", required=False, default="core/modules/counter/mobilenet_ssd/MobileNetSSD_deploy.caffemodel",
-            help="path to Caffe pre-trained model")
-        ap.add_argument("-i", "--input", type=str,
-            help="path to optional input video file")
-        ap.add_argument("-o", "--output", type=str,
-            help="path to optional output video file")
-        ap.add_argument("-c", "--confidence", type=float, default=0.4,
-            help="minimum probability to filter weak detections")
-        ap.add_argument("-s", "--skip-frames", type=int, default=30,
-            help="# of skip frames between detections")
-        args = vars(ap.parse_args())
 
+        lasttime = time.time()
         # initialize the list of class labels MobileNet SSD was trained to
         # detect
         CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
@@ -55,18 +51,9 @@ class RunAnalyseCam:
 
         # load our serialized model from disk
         print("[INFO] loading model...")
-        net = cv2.dnn.readNetFromCaffe(args["prototxt"], args["model"])
+        net = cv2.dnn.readNetFromCaffe(self.prototxt, self.model)
 
-        # if a video path was not supplied, grab a reference to the webcam
-        if not args.get("input", False):
-            print("[INFO] starting video stream...")
-            vs = VideoStream(src=0).start()
-            time.sleep(2.0)
-
-        # otherwise, grab a reference to the video file
-        else:
-            print("[INFO] opening video file... or http stream")
-            vs = cv2.VideoCapture(args["input"])
+        vs = cv2.VideoCapture(self.httpstream)
 
         # initialize the video writer (we'll instantiate later if need be)
         writer = None
@@ -89,20 +76,11 @@ class RunAnalyseCam:
         totalDown = 0
         totalUp = 0
 
-        # start the frames per second throughput estimator
-        fps = FPS().start()
-
         # loop over frames from the video stream
         while True:
             # grab the next frame and handle if we are reading from either
             # VideoCapture or VideoStream
-            frame = vs.read()
-            frame = frame[1] if args.get("input", False) else frame
-
-            # if we are viewing a video and we did not grab a frame then we
-            # have reached the end of the video
-            if args["input"] is not None and frame is None:
-                break
+            frame = vs.read()[1]
 
             # resize the frame to have a maximum width of 500 pixels (the
             # less data we have, the faster we can process it), then convert
@@ -114,13 +92,6 @@ class RunAnalyseCam:
             if W is None or H is None:
                 (H, W) = frame.shape[:2]
 
-            # if we are supposed to be writing a video to disk, initialize
-            # the writer
-            if args["output"] is not None and writer is None:
-                fourcc = cv2.VideoWriter_fourcc(*"MJPG")
-                writer = cv2.VideoWriter(args["output"], fourcc, 30,
-                    (W, H), True)
-
             # initialize the current status along with our list of bounding
             # box rectangles returned by either (1) our object detector or
             # (2) the correlation trackers
@@ -129,7 +100,7 @@ class RunAnalyseCam:
 
             # check to see if we should run a more computationally expensive
             # object detection method to aid our tracker
-            if totalFrames % args["skip_frames"] == 0:
+            if totalFrames % self.skipframes == 0:
                 # set the status and initialize our new set of object trackers
                 status = "Detecting"
                 trackers = []
@@ -148,7 +119,7 @@ class RunAnalyseCam:
 
                     # filter out weak detections by requiring a minimum
                     # confidence
-                    if confidence > args["confidence"]:
+                    if confidence > self.confidence:
                         # extract the index of the class label from the
                         # detections list
                         idx = int(detections[0, 0, i, 1])
@@ -253,17 +224,11 @@ class RunAnalyseCam:
 
             # construct a tuple of information we will be displaying on the
             # frame
-            info = [
-                ("Up", totalUp),
-                ("Down", totalDown),
-                ("Status", status),
-            ]
-
-            # loop over the info tuples and draw them on our frame
-            for (i, (k, v)) in enumerate(info):
-                text = "{}: {}".format(k, v)
-                cv2.putText(frame, text, (10, H - ((i * 20) + 20)),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+            jsondata = {'camid': self.camid, 'up': totalUp, 'down': totalDown, 'status': status}
+            if lasttime+20 < time.time():
+                lasttime = time.time()
+                requests.post('http://127.0.0.1:8080/api/v1/data/',
+                              json=jsondata)
 
             # check to see if we should write the frame to disk
             if writer is not None:
@@ -280,24 +245,3 @@ class RunAnalyseCam:
             # increment the total number of frames processed thus far and
             # then update the FPS counter
             totalFrames += 1
-            fps.update()
-
-        # stop the timer and display FPS information
-        fps.stop()
-        print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
-        print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
-
-        # check to see if we need to release the video writer pointer
-        if writer is not None:
-            writer.release()
-
-        # if we are not using a video file, stop the camera video stream
-        if not args.get("input", False):
-            vs.stop()
-
-        # otherwise, release the video file pointer
-        else:
-            vs.release()
-
-        # close any open windows
-        cv2.destroyAllWindows()

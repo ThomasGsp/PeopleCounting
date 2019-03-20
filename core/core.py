@@ -51,7 +51,7 @@ class Core:
 
 
             HttpCam = [
-                {'name': "MyCam01", "httpstream": "129.2.2.2"},
+                {'camid' : '01', 'name': "MyCam01", "httpstream": "http://193.251.18.40:8001/mjpg/video.mjpg"},
             ]
 
             for CAM in HttpCam:
@@ -62,6 +62,22 @@ class Core:
 
         else:
             exit(1)
+
+    def insert_cam(self, data):
+        self.mongo.insert_cam(data)
+
+    def del_cam(self, camid):
+        self.mongo.del_cam(camid)
+
+    def list_cam(self, camid=""):
+        self.mongo.list_cam()
+
+    def insert_count(self, data):
+        self.mongo.insert_count(data)
+
+    def get_count(self, camid, rq=None):
+        self.mongo.get_count(camid, rq=None)
+
 
 
 def setupindexes(self):

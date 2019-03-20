@@ -57,18 +57,12 @@ class MongoDB:
         """
         self.server = server
         self.port = port
-        self.collection_system = "system"
+        self.col_cam = "cam"
+        self.col_counter = "counter"
         self.port = port
         self.db = None
         self.client = None
 
-
-    def __mappingcol(self, col):
-        if col == "system":
-            collection = self.collection_system
-        else:
-            collection = ""
-        return collection
 
     def connect(self):
         try:
@@ -84,31 +78,26 @@ class MongoDB:
         except (TypeError, ValueError) as e:
             print("MongoDB authentification error on {0}:{1} ({2})".format(self.server, self.port, e))
 
-    def generalmongosearch(self, collection, id):
-        try:
-            result = {
-                "result": "OK",
-                "value": json.loads(dumps(self.db[collection].find_one({"_id": ObjectId(id)})))
-            }
-        except BaseException as e:
-            result = {
-                "result": "ERROR",
-                "type": "MongoDB - Request on generalmongosearch",
-                "value": "Invalid request: {0}".format(e)
-            }
-        return result
+    def insert_cam(self, data):
+        return self.db[self.col_cam].insert({'camid': data["camid"], 'name': data["name"], 'httpstream': data["httpstream"]})
 
-    def get_system_info(self):
-        return self.db[self.collection_system].find_one({"_id": "0"})
+    def del_cam(self, camid):
+        pass
 
-    def update_system_instances_id(self, value):
-        self.db[self.collection_system].update({'_id': "0"}, {'$set': {'instances_number': value}})
+    def list_cam(self, camid=""):
+        if camid:
+            return self.db[self.col_cam].find({'camid': camid})
+        else:
+            return self.db[self.col_cam].find().sort("camid", -1)
 
-    def update_system_instances_ip(self, value):
-        self.db[self.collection_system].update({'_id': "0"}, {'$set': {'IP_current': value}})
+    def insert_count(self, data):
+        return self.db[self.col_counter].insert({'camid': data["camid"], 'up': data["up"], 'down': data["down"], 'status': data["status"]})
 
-    def update_system_free_ip(self, value):
-        self.db[self.collection_system].update({'_id': "0"}, {'$push': {'IP_free': value}}, upsert=False)
+    def get_count(self, camid, rq=None):
+        if rq == "live":
+            return self.db[self.col_counter].find({'camid': camid}).sort("camid", -1)
+        else:
+            return self.db[self.col_counter].find({'camid': camid}).sort("camid", -1)
+        pass
 
-    def update_system_delete_ip(self, value):
-        self.db[self.collection_system].update({'_id': "0"}, {'$pull': {'IP_free': value}}, upsert=False)
+

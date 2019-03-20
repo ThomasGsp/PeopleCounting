@@ -51,8 +51,13 @@ if __name__ == "__main__":
         (
             # FRESH DATA
             '/api/v1/data/dates', 'Dates',
-            '/api/v1/data/([0-9]+|live)/', 'Values',
+
+            '/api/v1/data/', 'Values',
+            '/api/v1/data/([0-9]+)/', 'Values',
+            '/api/v1/data/([0-9]+)/live', 'Values',
+
             '/api/v1/config/', 'Manage',
+            '/api/v1/config/([0-9]+)', 'Manage',
         )
 
     """ Init Core thread """

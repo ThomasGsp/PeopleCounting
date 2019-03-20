@@ -11,19 +11,13 @@ import ast
 
 
 class Manage:
-    def POST(self, data):
+
+    def GET(self, camid=""):
         try:
-            data = json.loads(web.data().decode('utf-8'))
-            """ Overwrite name """
-            if data['api_pwd'] == "sfgf5saGFDF4eFS":
-                data["camid"] = random.randint(99999, 99999999)
-                result = core.insert_cam(data)
+            if camid:
+                result = core.list_cam(camid)
             else:
-                result = {
-                    "result": "ERROR",
-                    "type": "API",
-                    "value": "Invalid password"
-                }
+                result = core.list_cam()
 
         except BaseException as e:
             result = {
@@ -33,17 +27,17 @@ class Manage:
             }
         return result
 
-    def DELETE(self, data):
+    def POST(self):
         try:
             data = json.loads(web.data().decode('utf-8'))
-            """ Overwrite name """
-            if data['api_pwd'] == "sfgf5saGFDF4eFS":
-                result = core.del_cam(data)
+            if data['httpstream'] and data['name']:
+                data["camid"] = random.randint(99999, 99999999)
+                result = core.insert_cam(data)
             else:
                 result = {
                     "result": "ERROR",
                     "type": "API",
-                    "value": "Invalid password"
+                    "value": "Invalid request: Name and/or httpstream not found"
                 }
         except BaseException as e:
             result = {
@@ -51,7 +45,25 @@ class Manage:
                 "type": "API",
                 "value": "Invalid request: {0}".format(e)
             }
-            return result
+        return result
+
+    def DELETE(self, camid=""):
+        try:
+            if camid:
+                result = core.del_cam(camid)
+            else:
+                result = {
+                    "result": "ERROR",
+                    "type": "API",
+                    "value": "Invalid request: Name and/or id not found"
+                }
+        except BaseException as e:
+            result = {
+                "result": "ERROR",
+                "type": "API",
+                "value": "Invalid request: {0}".format(e)
+            }
+        return result
 
 class Dates:
     def GET(self, keytype):
@@ -67,12 +79,19 @@ class Dates:
 
 
 class Values:
-    def GET(self, rq):
+    def GET(self, camid, rq):
         try:
-            if rq == "live":
-                result = core.getlive()["value"]
+            if camid:
+                if rq == "live":
+                    result = core.get_count(camid, "live")
+                else:
+                    result = core.get_count(camid)
             else:
-                result = core.getlive(rq)["value"]
+                result = {
+                    "result": "ERROR",
+                    "type": "API",
+                    "value": "no cam id found: {0}".format(core.list_cam())
+                }
 
         except BaseException as e:
             result = {
@@ -82,6 +101,24 @@ class Values:
             }
         return result
 
+    def POST(self):
+        try:
+            data = json.loads(web.data().decode('utf-8'))
+            if data['camid']:
+                result = core.insert_count(data)
+            else:
+                result = {
+                    "result": "ERROR",
+                    "type": "API",
+                    "value": "Invalid request: Name and/or httpstream not found"
+                }
+        except BaseException as e:
+            result = {
+                "result": "ERROR",
+                "type": "API",
+                "value": "Invalid request: {0}".format(e)
+            }
+        return result
 
 class ThreadAPI(threading.Thread):
     #def __init__(self, threadid, name, urls, c, g, r):
