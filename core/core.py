@@ -64,19 +64,19 @@ class Core:
             exit(1)
 
     def insert_cam(self, data):
-        self.mongo.insert_cam(data)
+        return self.mongo.insert_cam(data)
 
     def del_cam(self, camid):
-        self.mongo.del_cam(camid)
+        return self.mongo.del_cam(camid)
 
     def list_cam(self, camid=""):
-        self.mongo.list_cam()
+        return self.mongo.list_cam()
 
     def insert_count(self, data):
-        self.mongo.insert_count(data)
+        return self.mongo.insert_count(data)
 
     def get_count(self, camid, rq=None):
-        self.mongo.get_count(camid, rq)
+        return self.mongo.get_count(camid, rq)
 
 
 
