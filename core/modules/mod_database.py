@@ -91,7 +91,8 @@ class MongoDB:
             return self.db[self.col_cam].find().sort("camid", -1)
 
     def insert_count(self, data):
-        return self.db[self.col_counter].insert({'camid': data["camid"], 'up': data["up"], 'down': data["down"], 'status': data["status"]})
+        return self.db[self.col_counter].insert({'camid': data["camid"], 'time':data["time"], 'up': data["up"],
+                                                 'down': data["down"], 'status': data["status"]})
 
     def get_count(self, camid, rq=None):
         if rq == "live":

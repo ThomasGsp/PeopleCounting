@@ -217,7 +217,13 @@ class RunAnalyseCam:
 
             # construct a tuple of information we will be displaying on the
             # frame
-            jsondata = {'camid': self.camid, 'up': totalUp, 'down': totalDown, 'status': status}
+            jsondata = {
+                'camid': self.camid,
+                'time':  time.time(),
+                'up': totalUp,
+                'down': totalDown,
+                'status': status
+            }
             if lasttime+20 < time.time():
                 lasttime = time.time()
                 requests.post('http://127.0.0.1:8080/api/v1/data/',
