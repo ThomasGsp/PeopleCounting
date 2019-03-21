@@ -28,7 +28,7 @@ class Core:
 
         self.generalconf = generalconf
         self.logger = logger
-        self.logger.write({"thread":threading.get_ident() ,"result": "INFO", "type": "MAINCORE",
+        self.logger.write({"thread":threading.get_ident(),"result": "INFO", "type": "MAINCORE",
                            "value": "Start Core process"})
 
         """ LOAD MONGODB """
